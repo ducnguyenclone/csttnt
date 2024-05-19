@@ -138,7 +138,7 @@ def main():
                                 beginScreen = False
                                 running = True
                     for button in difficulties:
-                        if button.isMouseOnText() == True:
+                        if buttonClicked == True and button.isMouseOnText() == True:
                             time = p.time.get_ticks()
                             beginScreen = False
                             running = True
@@ -148,6 +148,7 @@ def main():
                                 target = ChessAI.findBestMove
                             elif button.name == "hard":
                                 target = ChessAI.findBestMove
+                            buttonClicked = not buttonClicked
                             
             p.display.flip()
 
@@ -218,7 +219,6 @@ def main():
                         clock = p.time.Clock()
                         running = False
                         beginScreen = True
-                        
                         
                     if not game_over:
                         location = p.mouse.get_pos()  # (x, y) location of the mouse
@@ -314,10 +314,16 @@ def main():
             if  time <= p.time.get_ticks() and p.time.get_ticks() <= time + 2000:
                 playtime.displayButton(screen)
             
-            homebutton = Button.Button('homebutton', (620, 452), (50, 50))
+            homebutton = Button.Button('homebutton', (560, 452), (50, 50))
+            helpbutton = Button.Button('help', (640, 430), (90, 90))
             twoplayermode = Button.Button('twoplayermode', (60, 150), (400, 200))
             playcommode = Button.Button('playcommode', (60, 150), (400, 200))
             twocommode = Button.Button('twocommode', (60, 150), (400, 200))
+
+            if helpbutton.isMouseOnText() == True:
+                time2 = p.time.get_ticks()
+                helpnoti = Button.Button("helpnoti", (512, 240), (250, 250))
+                helpnoti.displayButton(screen)
             if time + 2000 <= p.time.get_ticks() and p.time.get_ticks() <=  time + 5000:
                 if (player_one == True) and (player_two == True):
                     twoplayermode.displayButton(screen)        
@@ -329,6 +335,8 @@ def main():
             
             homebutton.displayButton(screen)
             homebutton.handleHover(screen)
+            helpbutton.displayButton(screen)
+            helpbutton.handleHover(screen)
             
             clock.tick(MAX_FPS)
             p.display.flip()
