@@ -9,12 +9,12 @@ import ChessEngine, ChessAI
 import Button
 import sys
 from multiprocessing import Process, Queue
-
+#! Đây là đối với board, đối với màn hình thì sẽ là 700, 512 gì đó. 
 BOARD_WIDTH = BOARD_HEIGHT = 512
 MOVE_LOG_PANEL_WIDTH = 250
 MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
 DIMENSION = 8
-SQUARE_SIZE = BOARD_HEIGHT // DIMENSION
+SQUARE_SIZE = BOARD_HEIGHT // DIMENSION #! 64
 MAX_FPS = 15
 IMAGES = {}
 DEFAULT_IMAGE_SIZE = (BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT)
@@ -46,18 +46,27 @@ def main():
     This will handle user input and updating the graphics.
     """
     p.init()
+    #! biến screen khởi tạo màn hình
     screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
+    #! clock để thể hiện thời gian chạy (cái này có thể display lên màn hình cho người dùng)
     clock = p.time.Clock()
+    #! fill với nền trắng
     screen.fill(p.Color("white"))
-    game_state = ChessEngine.GameState()
-    valid_moves = game_state.getValidMoves()
-    move_made = False  # flag variable for when a move is made
-    animate = False  # flag variable for when we should animate a move
-    loadImages()  # do this only once before while loop
+    
+    game_state = ChessEngine.GameState() #! class gamestate này để làm gì? 
+    
+    
+    valid_moves = game_state.getValidMoves() #! check toàn bộ move để xem cái nào valid
+    #print("This is my valid_moves in beginning: "+str(valid_moves)) #! class
+    move_made = False  #! biến flag, dùng để xác nhận nước đi được đi
+    animate = False  # flag variable for when we should animate a move. #! animate a move là gì?
+    loadImages()  # khởi tạo toàn bộ hình ảnh của Quân cờ
     running = True
     beginScreen = True
     square_selected = ()  # no square is selected initially, this will keep track of the last click of the user (tuple(row,col))
+    #print("This is my square_selected = (keep track of the last click of the user)"+str(square_selected)) #! nothing
     player_clicks = []  # this will keep track of player clicks (two tuples)
+    
     game_over = False
     ai_thinking = False
     move_undone = False
@@ -69,24 +78,41 @@ def main():
     
     font = p.font.Font('freesansbold.ttf', 20)
     
+    buttonClicked = False
+    target = ""
     while not (running == False and beginScreen == False):
         while beginScreen:
             screen.blit(background,(0,0))
             
             # create button list 
+            welcome = Button.Button("welcome", (80,-50), (600,300))
             instruction = Button.Button("instruction", (140,150), (160, 60))
             news = Button.Button("news", (140, 240), (160, 60))
             watch = Button.Button("watch", (140, 330), (160, 60))
-            twoplayer = Button.Button("twoplayer", (440, 150), (160, 60))
-            playcom = Button.Button("playcom", (440, 240), (160, 60))
-            comcom = Button.Button("comcom", (440, 330), (160, 60))
+            twoplayer = Button.Button("twoplayer", (460, 150), (160, 60))
+            playcom = Button.Button("playcom", (460, 240), (160, 60))
+            comcom = Button.Button("comcom", (460, 330), (160, 60))
 
+            easy = Button.Button("easy", (460 + 160, 190), (100, 50))
+            medium = Button.Button("medium", (460 +160,  240 ), (100, 50))
+            hard = Button.Button("hard", (460 + 160, 290), (100, 50))
+
+            welcome.displayButton(screen)
             buttonList = [instruction, news, watch, twoplayer, playcom, comcom]
+            difficulties = [easy, medium, hard]
+
             for button in buttonList:
                 button.displayButton(screen)       
 
             for button in buttonList:
                 button.handleHover(screen)
+            
+            # check clicked for button easy, medium and hard
+            if buttonClicked == True:
+                
+                for button  in difficulties:
+                    button.displayButton(screen)
+                    button.handleHover(screen)
             
             for e in p.event.get():
                 if e.type == p.QUIT:
@@ -104,15 +130,29 @@ def main():
                             elif mode == "watch":
                                 news.open("https://www.chess.com/watch")
                                 mode = ""
+                            elif mode == "playcom":
+                                buttonClicked = not buttonClicked
                             else: # if choose play mode, move to the game
                                 time = p.time.get_ticks()
                                 beginScreen = False
                                 running = True
+                    for button in difficulties:
+                        if button.isMouseOnText() == True:
+                            time = p.time.get_ticks()
+                            beginScreen = False
+                            running = True
+                            if button.name == "easy":
+                                target = ChessAI.findBestMove
+                            elif button.name == "medium":
+                                target = ChessAI.findBestMove
+                            elif button.name == "hard":
+                                target = ChessAI.findBestMove
+                            
             p.display.flip()
 
         while running:
             time_to_blit = None
-            human_turn = (game_state.white_to_move and player_one) or (not game_state.white_to_move and player_two)
+            human_turn = (game_state.trangDiChuyen and player_one) or (not game_state.trangDiChuyen and player_two)
 
             # set mode 
             if mode == "twoplayer":
@@ -230,7 +270,7 @@ def main():
                 if not ai_thinking:
                     ai_thinking = True
                     return_queue = Queue()  # used to pass data between threads
-                    move_finder_process = Process(target=ChessAI.findBestMove, args=(game_state, valid_moves, return_queue))
+                    move_finder_process = Process(target=target, args=(game_state, valid_moves, return_queue))
                     move_finder_process.start()
 
                 if not move_finder_process.is_alive():
@@ -258,7 +298,7 @@ def main():
 
             if game_state.checkmate:
                 game_over = True
-                if game_state.white_to_move:
+                if game_state.trangDiChuyen:
                     drawEndGameText(screen, "Black wins by checkmate")
                 else:
                     drawEndGameText(screen, "White wins by checkmate")
@@ -329,7 +369,7 @@ def highlightSquares(screen, game_state, valid_moves, square_selected):
     if square_selected != ():
         row, col = square_selected
         if game_state.board[row][col][0] == (
-                'w' if game_state.white_to_move else 'b'):  # square_selected is a piece that can be moved
+                'w' if game_state.trangDiChuyen else 'b'):  # square_selected is a piece that can be moved
             # highlight selected square
             s = p.Surface((SQUARE_SIZE, SQUARE_SIZE))
             s.set_alpha(100)  # transparency value 0 -> transparent, 255 -> opaque
@@ -413,9 +453,9 @@ def animateMove(move, screen, board, clock):
         p.draw.rect(screen, color, end_square)
         # draw captured piece onto rectangle
         if move.piece_captured != '--':
-            if move.is_enpassant_move:
-                enpassant_row = move.end_row + 1 if move.piece_captured[0] == 'b' else move.end_row - 1
-                end_square = p.Rect(move.end_col * SQUARE_SIZE, enpassant_row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            if move.is_totQuaDuong_move:
+                totQuaDuong_row = move.end_row + 1 if move.piece_captured[0] == 'b' else move.end_row - 1
+                end_square = p.Rect(move.end_col * SQUARE_SIZE, totQuaDuong_row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
             screen.blit(IMAGES[move.piece_captured], end_square)
         # draw moving piece
         screen.blit(IMAGES[move.piece_moved], p.Rect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))

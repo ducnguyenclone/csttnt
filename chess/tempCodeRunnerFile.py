@@ -1,1 +1,2 @@
-mode = ""
+beginScreen = False
+                            running = True
