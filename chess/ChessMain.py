@@ -22,6 +22,7 @@ background = p.image.load("images/background4.jpg")
 background = p.transform.scale(background, DEFAULT_IMAGE_SIZE)
 board = p.image.load("images/board.png")
 board = p.transform.scale(board, (250, 250))
+p.display.set_caption('Chess')
 
 # handle button click 
 def clickButton():
