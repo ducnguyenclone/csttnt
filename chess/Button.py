@@ -21,7 +21,7 @@ class Button:
         else:
              return False
         
-    # big image when the mouse is hover on 
+    # big image when the mouse is hovering on 
     def handleHover(self, screen):
         if self.isMouseOnText() == True:
             image = p.image.load("images/" + self.name + ".png")
@@ -36,6 +36,7 @@ class Button:
                 return True
         return False
 
+    # open link when button is clicked
     def open(self, link):
         webbrowser.open(link)
 

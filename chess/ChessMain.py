@@ -62,14 +62,12 @@ def main():
     ai_thinking = False
     move_undone = False
     move_finder_process = None
-    move_log_font = p.font.SysFont("Arial", 14, False, False)
+    move_log_font = p.font.SysFont("Arial", 16, bold = True, italic= False)
     player_one = True  # if a human is playing white, then this will be True, else False
     player_two = True  # if a hyman is playing white, then this will be True, else False
     mode = "" # to save the type of game: twoplayer, playercom or comcom
     
     font = p.font.Font('freesansbold.ttf', 20)
-
-    
     
     while not (running == False and beginScreen == False):
         while beginScreen:
@@ -252,6 +250,7 @@ def main():
                 animate = False
                 move_undone = False
 
+            
             drawGameState(screen, game_state, valid_moves, square_selected)
 
             if not game_over:
@@ -267,12 +266,14 @@ def main():
             elif game_state.stalemate:
                 game_over = True
                 drawEndGameText(screen, "Stalemate")
+            
+            
 
             playtime = Button.Button('playtime', (60, 150), (400, 200))
             if  time <= p.time.get_ticks() and p.time.get_ticks() <= time + 2000:
                 playtime.displayButton(screen)
             
-            homebutton = Button.Button('homebutton', (702, 452), (50, 50))
+            homebutton = Button.Button('homebutton', (620, 452), (50, 50))
             twoplayermode = Button.Button('twoplayermode', (60, 150), (400, 200))
             playcommode = Button.Button('playcommode', (60, 150), (400, 200))
             twocommode = Button.Button('twocommode', (60, 150), (400, 200))
@@ -284,8 +285,10 @@ def main():
                 elif (player_one == False) and (player_two == False):
                     twocommode.displayButton(screen)
 
+            
             homebutton.displayButton(screen)
             homebutton.handleHover(screen)
+            
             clock.tick(MAX_FPS)
             p.display.flip()
 
@@ -306,7 +309,7 @@ def drawBoard(screen):
     The top left square is always light.
     """
     global colors
-    colors = [p.Color("white"), p.Color("gray")]
+    colors = [p.Color((118,150,86)), p.Color((238,238,210))]
     for row in range(DIMENSION):
         for column in range(DIMENSION):
             color = colors[((row + column) % 2)]
@@ -356,7 +359,7 @@ def drawMoveLog(screen, game_state, font):
 
     """
     move_log_rect = p.Rect(BOARD_WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
-    p.draw.rect(screen, p.Color('black'), move_log_rect)
+    p.draw.rect(screen, p.Color((186,202,88)), move_log_rect)
     move_log = game_state.move_log
     move_texts = []
     for i in range(0, len(move_log), 2):
