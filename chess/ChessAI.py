@@ -65,7 +65,7 @@ piece_position_scores = {"wN": knight_scores,
 
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 1
+DEPTH = 3
 
 #! greedy algorithm:
 #! look at all move, which move is the best
@@ -185,27 +185,6 @@ def findMoveMinMax(game_state, valid_move, depth, trangDiChuyen):
             game_state.undoMove()
         return minScore
 
-def findBestMove(game_state, valid_moves, return_queue):
-    '''
-    return the best move by call algor method!
-    next_move: Lúc này sẽ chứa tên của quân cờ mà nó đi!
-    '''
-    global next_move
-    
-    #! reset lại biến next_move
-    next_move = None
-    random.shuffle(valid_moves)
-    #! ở tham số depth mình có thể tunning nó thành không cố định
-    # findMoveNegaMaxAlphaBeta(game_state, valid_moves, DEPTH, -CHECKMATE, CHECKMATE,
-    #                          1 if game_state.trangDiChuyen else -1)
-    #print(type(game_state))
-    #greedySearch(game_state,valid_moves)
-    
-    
-    findMoveMinMax(game_state,valid_moves,DEPTH,True)
-    #greedySearch(game_state,valid_moves)
-    #print("My next move: ",next_move)
-    return_queue.put(next_move)
 
 
 def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_multiplier):
@@ -229,6 +208,31 @@ def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_m
         if alpha >= beta:
             break
     return max_score
+
+def findBestMove(game_state, valid_moves, return_queue, difficulty):
+    '''
+    return the best move by call algor method!
+    next_move: Lúc này sẽ chứa tên của quân cờ mà nó đi!
+    '''
+    global next_move
+    
+    #! reset lại biến next_move
+    next_move = None
+    random.shuffle(valid_moves)
+    #! ở tham số depth mình có thể tunning nó thành không cố định
+    if difficulty == "hard":
+        findMoveNegaMaxAlphaBeta(game_state, valid_moves, DEPTH, -CHECKMATE, CHECKMATE,
+                              1 if game_state.trangDiChuyen else -1)
+    #print(type(game_state))
+    #greedySearch(game_state,valid_moves)
+    
+    elif difficulty == "medium":
+        findMoveMinMax(game_state,valid_moves,DEPTH,True)
+    elif difficulty == "easy":
+        greedySearch(game_state,valid_moves)
+    #print("My next move: ",next_move)
+    return_queue.put(next_move)
+
 
 
 def scoreBoard(game_state):

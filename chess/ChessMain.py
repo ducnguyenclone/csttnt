@@ -67,22 +67,26 @@ def main():
     square_selected = ()  # no square is selected initially, this will keep track of the last click of the user (tuple(row,col))
     #print("This is my square_selected = (keep track of the last click of the user)"+str(square_selected)) #! nothing
     player_clicks = []  # this will keep track of player clicks (two tuples)
+    difficulty = "hard" # lưu độ khó khi chọn chế độ người vs máy 
     
-    game_over = False
-    ai_thinking = False
-    move_undone = False
-    move_finder_process = None
-    move_log_font = p.font.SysFont("Arial", 16, bold = True, italic= False)
-    player_one = True  # if a human is playing white, then this will be True, else False
-    player_two = True  # if a hyman is playing white, then this will be True, else False
-    mode = "" # to save the type of game: twoplayer, playercom or comcom
     
     font = p.font.Font('freesansbold.ttf', 20)
     
-    buttonClicked = False
-    target = ""
+    
     while not (running == False and beginScreen == False):
+        game_over = False
+        ai_thinking = False
+        move_undone = False
+        move_finder_process = None
+        move_log_font = p.font.SysFont("Arial", 16, bold = True, italic= False)
+        player_one = True  # if a human is playing white, then this will be True, else False
+        player_two = True  # if a hyman is playing white, then this will be True, else False
+        mode = "" # to save the type of game: twoplayer, playercom or comcom
+        buttonClicked = False
+        target = ""
+        time = 0
         while beginScreen:
+            
             screen.blit(background,(0,0))
             
             # create button list 
@@ -137,11 +141,13 @@ def main():
                                 time = p.time.get_ticks()
                                 beginScreen = False
                                 running = True
+                                
                     for button in difficulties:
                         if buttonClicked == True and button.isMouseOnText() == True:
                             time = p.time.get_ticks()
                             beginScreen = False
                             running = True
+                            difficulty = button.name
                             if button.name == "easy":
                                 target = ChessAI.findBestMove
                             elif button.name == "medium":
@@ -153,9 +159,7 @@ def main():
             p.display.flip()
 
         while running:
-            time_to_blit = None
-            human_turn = (game_state.trangDiChuyen and player_one) or (not game_state.trangDiChuyen and player_two)
-
+        
             # set mode 
             if mode == "twoplayer":
                 #! neu an 1 thi reset game lai
@@ -202,12 +206,20 @@ def main():
                 move_made = False
                 animate = False
                 game_over = False
+                target = ChessAI.findBestMove
                 
                 # move_undone = True
                 player_one = False
                 player_two = False
                 mode = ""
             #! display man hinh khoi dong chuong trinh
+        
+            #! biến human_turn để biết có phải là người chơi hay không (chế độ người chơi hay máy chơi)
+            if (game_state.trangDiChuyen and player_one == True) or (not game_state.trangDiChuyen and player_two == True):
+                human_turn = True
+            else:
+                human_turn = False
+            
             
             for e in p.event.get():    
                 if e.type == p.QUIT:
@@ -217,8 +229,10 @@ def main():
                 elif e.type == p.MOUSEBUTTONDOWN:
                     if homebutton.isMouseOnText() == True: 
                         clock = p.time.Clock()
-                        running = False
                         beginScreen = True
+                        running = False
+                        break
+                        
                         
                     if not game_over:
                         location = p.mouse.get_pos()  # (x, y) location of the mouse
@@ -267,22 +281,28 @@ def main():
                         move_undone = True
 
             # AI move finder
+            
             if not game_over and not human_turn and not move_undone:
+                
                 if not ai_thinking:
                     ai_thinking = True
                     return_queue = Queue()  # used to pass data between threads
-                    move_finder_process = Process(target=target, args=(game_state, valid_moves, return_queue))
+                    move_finder_process = Process(target=target, args=(game_state, valid_moves, return_queue, difficulty))
                     move_finder_process.start()
+                    
 
                 if not move_finder_process.is_alive():
+                    
                     ai_move = return_queue.get()
                     if ai_move is None:
                         ai_move = ChessAI.findRandomMove(valid_moves)
                     game_state.makeMove(ai_move)
+                    
                     move_made = True
                     animate = True
                     ai_thinking = False
 
+            
             if move_made:
                 if animate:
                     animateMove(game_state.move_log[-1], screen, game_state.board, clock)
@@ -321,9 +341,9 @@ def main():
             twocommode = Button.Button('twocommode', (60, 150), (400, 200))
 
             if helpbutton.isMouseOnText() == True:
-                time2 = p.time.get_ticks()
                 helpnoti = Button.Button("helpnoti", (512, 240), (250, 250))
                 helpnoti.displayButton(screen)
+            
             if time + 2000 <= p.time.get_ticks() and p.time.get_ticks() <=  time + 5000:
                 if (player_one == True) and (player_two == True):
                     twoplayermode.displayButton(screen)        
@@ -331,13 +351,13 @@ def main():
                     playcommode.displayButton(screen)        
                 elif (player_one == False) and (player_two == False):
                     twocommode.displayButton(screen)
-
+            
             
             homebutton.displayButton(screen)
             homebutton.handleHover(screen)
             helpbutton.displayButton(screen)
             helpbutton.handleHover(screen)
-            
+
             clock.tick(MAX_FPS)
             p.display.flip()
 
