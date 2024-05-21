@@ -557,6 +557,16 @@ class GameState:
         if self.board[row][col - 1] == '--' and self.board[row][col - 2] == '--' and self.board[row][col - 3] == '--':
             if not self.squareUnderAttack(row, col - 1) and not self.squareUnderAttack(row, col - 2):
                 moves.append(Move((row, col), (row, col - 2), self.board, is_nhapthanh_move=True))
+    def get_all_pieces(self):
+        """
+        Get a list of all pieces currently on the board.
+        """
+        pieces = []
+        for row in self.board:
+            for square in row:
+                if square != "--":  # Assuming empty squares are represented as "--"
+                    pieces.append(square)
+        return pieces           
 
 
 class nhapthanhRights:

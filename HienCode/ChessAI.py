@@ -64,12 +64,25 @@ piece_position_scores = {"wN": knight_scores,
                          "bp": pawn_scores[::-1]}
 
 
-#! dieu chinh do sau
+
 
 
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 3
+#! dieu chinh do sau
+# Hàm tính độ sâu tìm kiếm
+def calculate_depth(game_state):
+    """
+    Calculate the depth for the AI to search based on the current state of the board.
+    """
+    num_pieces = len(game_state.get_all_pieces())
+    if num_pieces > 30:
+        return 3  # Early game, lots of pieces, keep depth low for performance
+    elif num_pieces > 20:
+        return 4  # Mid game, moderate number of pieces
+    else:
+        return 5 # End game, fewer pieces, can afford to search deeper
+
 
 #! greedy algorithm:
 #! look at all move, which move is the best
@@ -94,6 +107,7 @@ DEPTH = 3
 
 def greedySearch(game_state,valid_move):
     global next_move
+    
     turnMultiplier = 1 if game_state.trangDiChuyen else -1
     opponentMinMaxScore = CHECKMATE
     
@@ -134,6 +148,7 @@ Sau đó thì đen sẽ chọn score min nhất.
 
 def findMoveSCout(game_state, valid_moves, depth, alpha, beta, turn_multiplier):
     global next_move
+    DEPTH = calculate_depth(game_state)
     if depth == 0:
         return turn_multiplier * scoreBoard(game_state)
     # move ordering - implement later //TODO
@@ -161,6 +176,7 @@ def findMoveSCout(game_state, valid_moves, depth, alpha, beta, turn_multiplier):
 
 def findmoveminimaxAlphaBeta(game_state,valid_moves,depth,alpha,beta,trangDiChuyen):
     global next_move
+    DEPTH = calculate_depth(game_state)
     if depth == 0:
         return scoreBoard(game_state)
     if trangDiChuyen:
@@ -206,13 +222,19 @@ def findBestMove(game_state, valid_moves, return_queue, difficulty):
     '''
     global next_move
     
+    
     #! reset lại biến next_move
     next_move = None
     random.shuffle(valid_moves)
+    DEPTH = calculate_depth(game_state)
     #! ở tham số depth mình có thể tunning nó thành không cố định
     if difficulty == "hard":
-        findMoveSCout(game_state, valid_moves, DEPTH, -CHECKMATE, CHECKMATE,
+        for depth in range(1, DEPTH + 1): # Tìm kiếm theo độ sâu tăng dần
+            print("Depth: ",depth)
+            findMoveSCout(game_state, valid_moves, depth, -CHECKMATE, CHECKMATE,
                               1 if game_state.trangDiChuyen else -1)
+            if next_move is not None:
+                break
     #print(type(game_state))
     #greedySearch(game_state,valid_moves)
     
